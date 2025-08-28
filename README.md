@@ -1,6 +1,6 @@
 # WebServer4J
 
-A lightweight, Netty-based MVC style web server for Java. It takes features inspired by ASP.NET Core, including constructor injection, controller auto discovery, sessions, file uploads, interceptors, templating, and both explicit and attribute-based routing.
+A lightweight, Netty-based MVC style web server for Java. It favors practical conventions inspired by ASP.NET Core, including constructor injection, controller auto discovery, sessions, file uploads, interceptors, templating, and both explicit and attribute-based routing.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
@@ -20,7 +20,8 @@ A lightweight, Netty-based MVC style web server for Java. It takes features insp
   - [Error Handling](#error-handling)
   - [Templating](#templating)
   - [Custom Responses](#custom-responses)
-  - [Wildcards and Explicit Routes](#wildcards-and-explicit-routes)
+  - [Wildcards in Routes](#wildcards-in-routes)
+  - [Explicit Routes](#explicit-routes)
   - [Dependency Injection](#dependency-injection)
 - [Advanced Examples](#advanced-examples)
 - [FAQ](#faq)
@@ -37,13 +38,23 @@ It supports serving static assets, reading query and form data, binding route an
 
 ## Installation
 
-Add the dependency to your build.
+Add the dependency to your build. If not yet published to a public repository, install locally or use a composite build.
 
 ```xml
 <dependency>
   <groupId>org.oldskooler</groupId>
   <artifactId>webserver4j</artifactId>
-  <version>1.0.0</version>
+  <version>0.1.0</version>
+</dependency>
+```
+
+Dependency injection is provided by java-di:
+
+```xml
+<dependency>
+  <groupId>org.oldskooler</groupId>
+  <artifactId>java-di</artifactId>
+  <version>latest</version>
 </dependency>
 ```
 
@@ -52,10 +63,8 @@ Add the dependency to your build.
 A minimal server with a single route and static file root:
 
 ```java
-WebServer server = new WebServer(8080, "wwwroot");
-
+var server = new WebServer(8080, "wwwroot", services);
 server.routes().map(HttpMethod.GET, "/health", ctx -> ctx.ok("OK"));
-
 server.start();
 ```
 
@@ -250,9 +259,57 @@ ctx.setBody(bytes);
 return ActionResult.fromResponse(ctx.response());
 ```
 
-### Wildcards and Explicit Routes
+### Wildcards in Routes
 
-Wildcards can be used in interceptors and explicit routes.
+You can declare routes with wildcards to capture parts of the URL path without naming them explicitly.
+
+#### `*` single-segment wildcard
+
+Matches exactly one path segment (the part of the URL between slashes).
+
+Example:
+
+```java
+@HttpGet("/article/*/comment/*")
+public ActionResult show(HttpContext ctx) {
+    String articleId = ctx.wildcard(0); // "421"
+    String commentId = ctx.wildcard(1); // "33"
+    return ctx.json(Map.of("articleId", articleId, "commentId", commentId));
+}
+```
+
+Examples of matching:
+* `/article/421/comment/33` matches, wildcards = `["421", "33"]`
+* `/article/421/comment/33/extra` does not match (too many segments)
+
+#### `**` multi-segment (catch-all) wildcard
+
+Matches zero or more segments, including embedded slashes.
+Useful for catch-all scenarios such as serving static files, downloads, or single-page app fallbacks.
+
+Example:
+
+```java
+@HttpGet("/files/**")
+public ActionResult files(HttpContext ctx) {
+    String path = ctx.wildcard(0);
+    return ctx.ok("Requested file path: " + path);
+}
+```
+
+Examples of matching:
+* `/files/foo.txt` wildcards = `["foo.txt"]`
+* `/files/images/2025/08/28/photo.jpg` wildcards = `["images/2025/08/28/photo.jpg"]`
+
+#### Accessing wildcards
+
+* Use `ctx.wildcard(index)` to get a specific wildcard value
+* Use `ctx.wildcards()` to get all captured values as a list
+* Wildcards are positional: the first `*` or `**` in your route is index 0, the next is index 1, and so on
+
+### Explicit Routes
+
+Wildcards can also be used in interceptors and explicit routes.
 
 ```java
 server.interceptors().add("/assets/**", ctx -> {
