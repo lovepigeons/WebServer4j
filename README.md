@@ -38,23 +38,13 @@ It supports serving static assets, reading query and form data, binding route an
 
 ## Installation
 
-Add the dependency to your build. If not yet published to a public repository, install locally or use a composite build.
+Add the dependency to your build.
 
 ```xml
 <dependency>
   <groupId>org.oldskooler</groupId>
   <artifactId>webserver4j</artifactId>
   <version>0.1.0</version>
-</dependency>
-```
-
-Dependency injection is provided by java-di:
-
-```xml
-<dependency>
-  <groupId>org.oldskooler</groupId>
-  <artifactId>java-di</artifactId>
-  <version>latest</version>
 </dependency>
 ```
 
@@ -227,17 +217,46 @@ Return `true` to indicate the error was handled.
 
 Use the provided TemplateEngine interface to render dynamic views. A simple implementation is available and can be replaced.
 
-```java
-String html = templates.render("<h1>Hello {{name}}</h1>", Map.of("name", "world"));
-ctx.contentType("text/html; charset=UTF-8");
-ctx.setBody(html.getBytes());
-return ActionResult.fromResponse(ctx.response());
-```
+The TemplateEngine interface provides two methods:
+- `render()` for inline template strings
+- `file()` for template files
 
 Register the engine during startup:
 
 ```java
 services.addSingleton(TemplateEngine.class, SimpleTemplateEngine.class);
+```
+
+Example controller with constructor-injected TemplateEngine:
+
+```java
+@Controller(route = "/pages")
+public class PageController {
+    private final TemplateEngine templates;
+
+    public PageController(TemplateEngine templates) {
+        this.templates = templates;
+    }
+
+    @HttpGet("/view")
+    public ActionResult view(HttpContext ctx, @FromQuery("name") String name) {
+        Map<String,Object> model = new HashMap<>();
+        model.put("name", name == null ? "world" : name);
+        
+        String html = templates.render("<h1>Hello {{name}}</h1>", model);
+        return ctx.html(html);
+    }
+
+    @HttpGet("/profile")
+    public ActionResult profile(HttpContext ctx, @FromSession("user") String user) {
+        Map<String,Object> model = new HashMap<>();
+        model.put("user", user);
+        model.put("title", "User Profile");
+        
+        String html = templates.file("profile.html", model);
+        return ctx.html(html);
+    }
+}
 ```
 
 ### Custom Responses
