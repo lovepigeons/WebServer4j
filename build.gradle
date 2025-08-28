@@ -26,14 +26,14 @@ java {
 }
 
 // Configure the shadow jar (fat jar). Defaults to classifier "all".
-// Set the file name explicitly to match your old pattern if desired.
+// The below sets the file name to the expected output
 tasks.shadowJar {
-    // Produces <project.name>-<project.version>.jar (no "-all" suffix). Comment out to keep default.
+    // Produces <project.name>-<project.version>.jar (no "-all" suffix).
     archiveClassifier.set("")
     archiveFileName.set("${project.name}-${project.version}.jar")
     minimize()
 }
 
 artifacts {
-    archives tasks.named('shadowJar')
+    archives tasks.named("shadowJar")
 }
