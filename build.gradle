@@ -1,20 +1,15 @@
-plugins {
-    id 'java-library'
-    id 'maven-publish'
-}
+apply plugin: 'java'
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
 
-group = 'org.oldskooler'
-version = '1.0-SNAPSHOT'
+group = 'com.github.jitpack'
+version = '2.0'
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
-}
+sourceCompatibility = 1.8 // java 8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -23,4 +18,22 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
     api 'com.fasterxml.jackson.core:jackson-core:2.17.2'
     api 'com.github.Quackster:Inject4j:v1.0.0'
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+wrapper {
+    gradleVersion = "7.3.3"
+    distributionType = Wrapper.DistributionType.ALL
 }
