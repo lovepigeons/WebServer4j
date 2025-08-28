@@ -215,17 +215,13 @@ Return `true` to indicate the error was handled.
 
 ### Templating
 
-Use the provided TemplateEngine interface to render dynamic views. A simple implementation is available and can be replaced.
+Use the provided TemplateEngine abstract class to render dynamic views with a fluent API. A simple implementation is available and can be replaced.
 
-The TemplateEngine interface provides two methods:
-- `render()` for inline template strings
-- `file()` for template files
-
-Register the engine during startup:
-
-```java
-services.addSingleton(TemplateEngine.class, SimpleTemplateEngine.class);
-```
+The TemplateEngine provides a fluent interface for building templates:
+- `html()` sets the template string
+- `file()` loads template from file system or classpath
+- `model()` sets the template model
+- `build()` renders and returns an ActionResult
 
 Example controller with constructor-injected TemplateEngine:
 
@@ -242,9 +238,11 @@ public class PageController {
     public ActionResult view(HttpContext ctx, @FromQuery("name") String name) {
         Map<String,Object> model = new HashMap<>();
         model.put("name", name == null ? "world" : name);
-        
-        String html = templates.render("<h1>Hello {{name}}</h1>", model);
-        return ctx.html(html);
+
+        return templates
+                .html("<h1>Hello {{name}}</h1>")
+                .model(model)
+                .build(ctx);
     }
 
     @HttpGet("/profile")
@@ -252,11 +250,19 @@ public class PageController {
         Map<String,Object> model = new HashMap<>();
         model.put("user", user);
         model.put("title", "User Profile");
-        
-        String html = templates.file("profile.html", model);
-        return ctx.html(html);
+
+        return templates
+                .file("profile.html")
+                .model(model)
+                .build(ctx);
     }
 }
+```
+
+Register the engine during startup:
+
+```java
+services.addSingleton(TemplateEngine.class, SimpleTemplateEngine.class);
 ```
 
 ### Custom Responses
