@@ -1,12 +1,10 @@
-apply plugin: 'java'
-apply plugin: 'java-library'
-apply plugin: 'maven-publish'
+plugins {
+    id 'java-library'
+    id 'com.github.johnrengelman.shadow' version '8.1.1' // For Java 8
+}
 
-group = 'com.github.jitpack'
-version = '2.0'
-
-sourceCompatibility = 1.8 // java 8
-targetCompatibility = 1.8
+group = 'org.oldskooler'
+version = '1.0.0'
 
 repositories {
     mavenCentral()
@@ -22,19 +20,20 @@ dependencies {
 }
 
 java {
-    withSourcesJar()
-    withJavadocJar()
+    withSourcesJar()   // replaces custom sourcesJar task
+    withJavadocJar()   // replaces custom javadocJar task
+    toolchain { languageVersion = JavaLanguageVersion.of(8) } // (optional) pick your Java
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
+// Configure the shadow jar (fat jar). Defaults to classifier "all".
+// Set the file name explicitly to match your old pattern if desired.
+tasks.shadowJar {
+    // Produces <project.name>-<project.version>.jar (no "-all" suffix). Comment out to keep default.
+    archiveClassifier.set("")
+    archiveFileName.set("${project.name}-${project.version}.jar")
+    minimize()
 }
 
-wrapper {
-    gradleVersion = "7.3.3"
-    distributionType = Wrapper.DistributionType.ALL
+artifacts {
+    archives tasks.named('shadowJar')
 }
