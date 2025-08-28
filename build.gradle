@@ -20,9 +20,9 @@ dependencies {
 }
 
 java {
-    withSourcesJar()   // replaces custom sourcesJar task
-    withJavadocJar()   // replaces custom javadocJar task
-    toolchain { languageVersion = JavaLanguageVersion.of(8) } // (optional) pick your Java
+    withSourcesJar()
+    withJavadocJar()
+    toolchain { languageVersion = JavaLanguageVersion.of(8) }
 }
 
 // Configure the shadow jar (fat jar). Defaults to classifier "all".
