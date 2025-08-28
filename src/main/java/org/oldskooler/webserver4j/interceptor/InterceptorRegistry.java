@@ -27,9 +27,9 @@ public class InterceptorRegistry {
         for (Entry e : entries) {
             Matcher m = e.pattern.regex().matcher(path);
             if (m.matches()) {
-                if (!e.interceptor.preHandle(ctx)) return false;
+                if (e.interceptor.preHandle(ctx)) return true;
             }
         }
-        return true;
+        return false;
     }
 }
