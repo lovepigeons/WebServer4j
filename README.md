@@ -1,6 +1,10 @@
-# WebServer4J
+# WebServer4j
 
 A lightweight, Netty-based MVC style web server for Java. It favors practical conventions inspired by ASP.NET Core, including constructor injection, controller auto discovery, sessions, file uploads, interceptors, templating, and both explicit and attribute-based routing.
+
+It uses [Inject4j](https://github.com/Quackster/Inject4j) for dependency injection.
+
+**Built and tested against Java 1.8**
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
@@ -29,23 +33,58 @@ A lightweight, Netty-based MVC style web server for Java. It favors practical co
 
 ## Overview
 
-WebServer4J gives you two ways to build HTTP apps:
+WebServer4j gives you two ways to build HTTP apps:
 
 - **Explicit routes** for small or microservice style endpoints
 - **Annotated controllers** for larger applications with clean separation of concerns
 
 It supports serving static assets, reading query and form data, binding route and session values, streaming files, returning JSON, and issuing redirects. It also includes a simple template engine interface that you can replace.
 
+---
+
 ## Installation
 
-Add the dependency to your build.
+### Gradle
+
+Add the [JitPack](https://jitpack.io/#Quackster/WebServer4j) repository:
+
+```groovy
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+```
+
+Then add the dependency:
+
+```groovy
+dependencies {
+    implementation 'com.github.Quackster:WebServer4j:v1.0.0'
+}
+```
+
+### Maven
+
+Add the [JitPack](https://jitpack.io/#Quackster/WebServer4j) repository:
 
 ```xml
-<dependency>
-  <groupId>org.oldskooler</groupId>
-  <artifactId>webserver4j</artifactId>
-  <version>0.1.0</version>
-</dependency>
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+Then add the dependency:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.github.Quackster</groupId>
+        <artifactId>WebServer4j</artifactId>
+        <version>v1.0.0</version>
+    </dependency>
+</dependencies>
 ```
 
 ## Quick Start
@@ -53,7 +92,7 @@ Add the dependency to your build.
 A minimal server with a single route and static file root:
 
 ```java
-var server = new WebServer(8080, "wwwroot", services);
+var server = new WebServer(8080, "wwwroot");
 server.routes().map(HttpMethod.GET, "/health", ctx -> ctx.ok("OK"));
 server.start();
 ```
@@ -86,7 +125,7 @@ server.addControllers();
 ```
 
 ```java
-import org.oldskooler.webserver4j.controller.*;
+import org.oldskooler.WebServer4j.controller.*;
 
 @Controller(route = "/home")
 public class HomeController {
@@ -173,7 +212,7 @@ Interceptors run before the route handler. They are ideal for logging, authentic
 ```java
 // Global header
 server.interceptors().add("/**", ctx -> {
-    ctx.header("X-Powered-By", "WebServer4J");
+    ctx.header("X-Powered-By", "WebServer4j");
     return false;
 });
 
@@ -347,7 +386,7 @@ server.routes().map(HttpMethod.GET, "/metrics/**", ctx -> ctx.ok("metrics endpoi
 
 ### Dependency Injection
 
-WebServer4J supports constructor injection through java-di. Services are registered in a ServiceCollection and resolved when controllers are created.
+WebServer4j supports constructor injection through java-di. Services are registered in a ServiceCollection and resolved when controllers are created.
 
 You can register interfaces with their implementations:
 
@@ -393,6 +432,30 @@ This pattern encourages clean abstractions and makes testing easier by allowing 
 ## Advanced Examples
 
 ### Login and Session-Backed APIs
+
+UserService
+
+```java
+public interface UserService {
+    boolean authenticate(String username, String password);
+}
+
+public class BasicUserService implements UserService {
+    @Override
+    public boolean authenticate(String username, String password) {
+        // demo only: hardcoded user/pass
+        return "user".equals(username) && "pass".equals(password);
+    }
+}
+```
+
+Register in startup:
+
+```java
+services.addSingleton(UserService.class, BasicUserService.class);
+```
+
+The account controller using sessions and dependency injected user service.
 
 ```java
 @Controller(route = "/account")
@@ -462,5 +525,6 @@ Set `ctx.response().setStatus(code)` before returning an ActionResult or using h
 
 ## License
 
-WebServer4J is licensed under the GNU General Public License v3.0.  
+WebServer4j is licensed under the GNU General Public License v3.0.
+
 See the LICENSE file for the full text.

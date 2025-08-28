@@ -1,8 +1,8 @@
 package org.oldskooler.webserver4j.controller;
 
-import org.oldskooler.javadi.Scope;
-import org.oldskooler.javadi.ServiceCollection;
-import org.oldskooler.javadi.ServiceProvider;
+import org.oldskooler.inject4j.Scope;
+import org.oldskooler.inject4j.ServiceCollection;
+import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.webserver4j.http.HttpContext;
 import org.oldskooler.webserver4j.http.HttpMethod;
 import org.oldskooler.webserver4j.results.ActionResult;
