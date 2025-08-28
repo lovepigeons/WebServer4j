@@ -32,7 +32,6 @@ import java.util.jar.JarFile;
  *   <li><strong>Project-wide mode:</strong> If {@code basePackage} is {@code null} or blank, the entire application
  *       classpath (directories and JARs on {@code java.class.path}) is scanned.</li>
  * </ol>
- * </p>
  *
  * <h2>Controller discovery</h2>
  * A class is considered a controller if either:
