@@ -16,7 +16,7 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
     api 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
     api 'com.fasterxml.jackson.core:jackson-core:2.17.2'
-    api 'com.github.Quackster:Inject4j:v1.0.0'
+    api 'com.github.lovepigeons:Inject4j:v1.0.0'
 }
 
 java {
