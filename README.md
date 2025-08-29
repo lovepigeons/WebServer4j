@@ -2,7 +2,7 @@
 
 A lightweight, Netty-based MVC style web server for Java. It favors practical conventions inspired by ASP.NET Core, including constructor injection, controller auto discovery, sessions, file uploads, interceptors, templating, and both explicit and attribute-based routing.
 
-It uses [Inject4j](https://github.com/Quackster/Inject4j) for dependency injection.
+It uses [Inject4j](https://github.com/lovepigeons/Inject4j) for dependency injection.
 
 **Built and tested against Java 1.8**
 
@@ -46,7 +46,7 @@ It supports serving static assets, reading query and form data, binding route an
 
 ### Gradle
 
-Add the [JitPack](https://jitpack.io/#Quackster/WebServer4j) repository:
+Add the [JitPack](https://jitpack.io/#lovepigeons/WebServer4j) repository:
 
 ```groovy
 repositories {
@@ -58,13 +58,13 @@ Then add the dependency:
 
 ```groovy
 dependencies {
-    implementation 'com.github.Quackster:WebServer4j:v1.0.0'
+    implementation 'com.github.lovepigeons:WebServer4j:v1.0.0'
 }
 ```
 
 ### Maven
 
-Add the [JitPack](https://jitpack.io/#Quackster/WebServer4j) repository:
+Add the [JitPack](https://jitpack.io/#lovepigeons/WebServer4j) repository:
 
 ```xml
 <repositories>
@@ -80,7 +80,7 @@ Then add the dependency:
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.github.Quackster</groupId>
+        <groupId>com.github.lovepigeons</groupId>
         <artifactId>WebServer4j</artifactId>
         <version>v1.0.0</version>
     </dependency>
