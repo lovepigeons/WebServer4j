@@ -6,7 +6,7 @@ It uses [Inject4j](https://github.com/lovepigeons/Inject4j) for dependency injec
 
 **Built and tested against Java 1.8**
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ## Table of Contents
 
@@ -525,6 +525,6 @@ Set `ctx.response().setStatus(code)` before returning an ActionResult or using h
 
 ## License
 
-WebServer4j is licensed under the GNU General Public License v3.0.
+WebServer4j is released under the Apache 2.0 license.
 
 See the LICENSE file for the full text.
