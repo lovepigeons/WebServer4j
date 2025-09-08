@@ -1,6 +1,6 @@
 package org.oldskooler.webserver4j.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.oldskooler.webserver4j.results.ActionResult;
 import org.oldskooler.webserver4j.session.Session;
 
@@ -14,9 +14,9 @@ public class HttpContext {
     private final HttpRequestData request;
     private final HttpResponseData response;
     private final Session session;
-    private final ObjectMapper json;
+    private final Gson json;
 
-    public HttpContext(HttpRequestData request, HttpResponseData response, Session session, ObjectMapper json) {
+    public HttpContext(HttpRequestData request, HttpResponseData response, Session session, Gson json) {
         this.request = request;
         this.response = response;
         this.session = session;
@@ -60,7 +60,7 @@ public class HttpContext {
 
     public ActionResult json(Object obj) {
         try {
-            byte[] bytes = json.writeValueAsBytes(obj);
+            byte[] bytes = json.toJson(obj).getBytes(StandardCharsets.UTF_8);
             response.setStatus(200);
             response.setContentType("application/json");
             response.setBody(bytes);
@@ -73,6 +73,13 @@ public class HttpContext {
     public ActionResult file(String path) {
         response.setStatus(200);
         response.setFilePath(path);
+        return ActionResult.fromResponse(response);
+    }
+
+    public ActionResult status(int code, byte[] data, String contentType) {
+        response.setStatus(code);
+        response.setContentType(contentType);
+        response.setBody(data);
         return ActionResult.fromResponse(response);
     }
 
