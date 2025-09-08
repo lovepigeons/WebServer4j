@@ -4,18 +4,28 @@ plugins {
 }
 
 group = 'org.oldskooler'
-version = '1.0.0'
+// version = '1.5'
 
 repositories {
-    mavenCentral()
+    flatDir {
+        dirs 'libs'
+    }
     maven { url 'https://jitpack.io' }
+    mavenCentral()
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+}
+
+
 dependencies {
-    api 'io.netty:netty-all:4.2.4.Final'
-    api 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
-    api 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
-    api 'com.fasterxml.jackson.core:jackson-core:2.17.2'
+    implementation 'io.netty:netty-all:4.2.4.Final'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.17.2'
     api 'com.github.lovepigeons:Inject4j:v1.0.0'
 }
 
@@ -31,7 +41,7 @@ tasks.shadowJar {
     // Produces <project.name>-<project.version>.jar (no "-all" suffix).
     archiveClassifier.set("")
     archiveFileName.set("${project.name}-${project.version}.jar")
-    minimize()
+    minimize();
 }
 
 artifacts {
