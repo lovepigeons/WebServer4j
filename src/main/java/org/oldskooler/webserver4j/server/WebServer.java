@@ -1,6 +1,6 @@
 package org.oldskooler.webserver4j.server;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -85,7 +85,7 @@ public class WebServer {
     private final ErrorRegistry errors = new ErrorRegistry();
     private final StaticFileService staticFiles;
     private final SessionManager sessions;
-    private final ObjectMapper json = new ObjectMapper();
+    private final Gson json = new Gson();
     private final ServiceCollection services;
     private final ControllerScanner scanner;
 
@@ -238,6 +238,12 @@ public class WebServer {
         String sessionId = cookies.containsKey("SESSIONID") ? cookies.get("SESSIONID").value() : null;
         Session session = sessions.getOrCreate(sessionId);
 
+        // --- Headers ---
+        Map<String, String> headers = new HashMap<>();
+        for (Map.Entry<String, String> entry : req.headers()) {
+            headers.putIfAbsent(entry.getKey(), entry.getValue());
+        }
+
         // --- Query parameters ---
         QueryStringDecoder qd = new QueryStringDecoder(req.uri(), StandardCharsets.UTF_8);
         Map<String, List<String>> queryMap = new HashMap<>(qd.parameters());
@@ -301,6 +307,7 @@ public class WebServer {
                 new QueryParams(formMap),
                 files,
                 cookies,
+                headers,
                 rawBody,
                 contentType == null ? "" : contentType,
                 wildcardParts
