@@ -1,10 +1,9 @@
 plugins {
     id 'java-library'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' // For Java 8
 }
 
 group = 'org.oldskooler'
-// version = '1.5'
+// version = '1.0.1'
 
 repositories {
     flatDir {
@@ -26,17 +25,4 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.17.2'
     api 'com.github.lovepigeons:Inject4j:v1.0.0'
-}
-
-// Configure the shadow jar (fat jar). Defaults to classifier "all".
-// The below sets the file name to the expected output
-tasks.shadowJar {
-    // Produces <project.name>-<project.version>.jar (no "-all" suffix).
-    archiveClassifier.set("")
-    archiveFileName.set("${project.name}-${project.version}.jar")
-    minimize();
-}
-
-artifacts {
-    archives tasks.named("shadowJar")
 }
