@@ -20,19 +20,12 @@ java {
     toolchain { languageVersion = JavaLanguageVersion.of(8) }
 }
 
-
 dependencies {
     implementation 'io.netty:netty-all:4.2.4.Final'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.17.2'
     api 'com.github.lovepigeons:Inject4j:v1.0.0'
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
-    toolchain { languageVersion = JavaLanguageVersion.of(8) }
 }
 
 // Configure the shadow jar (fat jar). Defaults to classifier "all".
