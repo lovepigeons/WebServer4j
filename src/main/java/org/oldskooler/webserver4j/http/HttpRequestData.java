@@ -18,13 +18,14 @@ public class HttpRequestData {
     private final byte[] rawBody;
     private final String contentType;
     private final List<String> wildcards;
+    private final Map<String, String> headers;
 
     public HttpRequestData(HttpMethod method, String path,
                            Map<String, String> routeParams,
                            QueryParams query, QueryParams form,
                            List<UploadedFile> files,
                            Map<String, Cookie> cookies,
-                           byte[] rawBody,
+                           Map<String, String> headers, byte[] rawBody,
                            String contentType,
                            List<String> wildcards) {
         this.method = method;
@@ -34,6 +35,7 @@ public class HttpRequestData {
         this.form = form;
         this.files = Collections.unmodifiableList(new ArrayList<>(files));
         this.cookies = Collections.unmodifiableMap(new HashMap<>(cookies));
+        this.headers = Collections.unmodifiableMap(headers);
         this.rawBody = rawBody;
         this.contentType = contentType;
         this.wildcards = Collections.unmodifiableList(new java.util.ArrayList<>(wildcards));
@@ -87,5 +89,9 @@ public class HttpRequestData {
 
     public String getContentType() {
         return contentType;
+    }
+
+    public Map<String, String> getHeaders() {
+        return headers;
     }
 }
