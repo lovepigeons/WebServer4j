@@ -5,7 +5,6 @@ import org.oldskooler.inject4j.ServiceCollection;
 import org.oldskooler.inject4j.ServiceProvider;
 import org.oldskooler.webserver4j.http.HttpContext;
 import org.oldskooler.webserver4j.http.HttpMethod;
-import org.oldskooler.webserver4j.results.ActionResult;
 import org.oldskooler.webserver4j.routing.RouteHandler;
 import org.oldskooler.webserver4j.routing.Router;
 

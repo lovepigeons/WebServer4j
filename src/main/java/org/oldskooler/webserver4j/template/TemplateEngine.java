@@ -1,7 +1,7 @@
 package org.oldskooler.webserver4j.template;
 
 import org.oldskooler.webserver4j.http.HttpContext;
-import org.oldskooler.webserver4j.results.ActionResult;
+import org.oldskooler.webserver4j.controller.ActionResult;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
