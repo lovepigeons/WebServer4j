@@ -58,7 +58,7 @@ Then add the dependency:
 
 ```groovy
 dependencies {
-    implementation 'com.github.lovepigeons:WebServer4j:v1.0.1'
+    implementation 'com.github.lovepigeons:WebServer4j:v1.0.2'
 }
 ```
 
@@ -82,7 +82,7 @@ Then add the dependency:
     <dependency>
         <groupId>com.github.lovepigeons</groupId>
         <artifactId>WebServer4j</artifactId>
-        <version>v1.0.1</version>
+        <version>v1.0.2</version>
     </dependency>
 </dependencies>
 ```
