@@ -4,7 +4,7 @@ import org.oldskooler.webserver4j.controller.Controller;
 import org.oldskooler.webserver4j.controller.FromRoute;
 import org.oldskooler.webserver4j.controller.HttpGet;
 import org.oldskooler.webserver4j.http.HttpContext;
-import org.oldskooler.webserver4j.results.ActionResult;
+import org.oldskooler.webserver4j.controller.ActionResult;
 
 import java.util.HashMap;
 import java.util.Map;

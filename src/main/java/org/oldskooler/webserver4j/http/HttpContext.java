@@ -1,7 +1,7 @@
 package org.oldskooler.webserver4j.http;
 
 import com.google.gson.Gson;
-import org.oldskooler.webserver4j.results.ActionResult;
+import org.oldskooler.webserver4j.controller.ActionResult;
 import org.oldskooler.webserver4j.session.Session;
 
 import java.nio.charset.StandardCharsets;

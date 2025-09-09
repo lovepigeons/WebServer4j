@@ -1,4 +1,4 @@
-package org.oldskooler.webserver4j.results;
+package org.oldskooler.webserver4j.controller;
 
 import org.oldskooler.webserver4j.http.HttpResponseData;
 
