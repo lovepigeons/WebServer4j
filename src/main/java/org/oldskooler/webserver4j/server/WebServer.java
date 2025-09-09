@@ -6,6 +6,8 @@ import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import org.oldskooler.inject4j.ServiceCollection;
 import org.oldskooler.webserver4j.controller.ControllerScanner;
@@ -16,6 +18,8 @@ import org.oldskooler.webserver4j.routing.Router;
 import org.oldskooler.webserver4j.session.SessionManager;
 import org.oldskooler.webserver4j.staticfiles.StaticFileService;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -29,6 +33,7 @@ import java.util.concurrent.TimeUnit;
  *   <li>Session management</li>
  *   <li>Static file serving</li>
  *   <li>Error handling</li>
+ *   <li>Optional SSL/TLS support</li>
  * </ul>
  */
 public class WebServer {
@@ -36,15 +41,91 @@ public class WebServer {
         private int port = 8080;
         private String wwwroot = "wwwroot";
         private final ServiceCollection services = new ServiceCollection();
+        private boolean sslEnabled = false;
+        private String certificatePath;
+        private String privateKeyPath;
+        private String keyPassword;
+        private boolean useSelfSignedCert = false;
+        private String sslHostname; // Add to Builder
 
-        public Builder port(int port) { this.port = port; return this; }
-        public Builder wwwroot(String path) { this.wwwroot = path; return this; }
-        public Builder services(java.util.function.Consumer<ServiceCollection> fn) { fn.accept(services); return this; }
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
 
-        public WebServer build() { return new WebServer(port, wwwroot, services); }
+        public Builder wwwroot(String path) {
+            this.wwwroot = path;
+            return this;
+        }
+
+        public Builder services(java.util.function.Consumer<ServiceCollection> fn) {
+            fn.accept(services);
+            return this;
+        }
+
+        public Builder sslHostname(String hostname) {
+            this.sslHostname = hostname;
+            return this;
+        }
+
+        /**
+         * Enables SSL with a custom certificate and private key.
+         *
+         * @param certificatePath path to the certificate file (PEM format)
+         * @param privateKeyPath path to the private key file (PEM format)
+         * @return this builder
+         */
+        public Builder ssl(String certificatePath, String privateKeyPath) {
+            this.sslEnabled = true;
+            this.certificatePath = certificatePath;
+            this.privateKeyPath = privateKeyPath;
+            return this;
+        }
+
+        /**
+         * Enables SSL with a custom certificate, private key, and key password.
+         *
+         * @param certificatePath path to the certificate file (PEM format)
+         * @param privateKeyPath path to the private key file (PEM format)
+         * @param keyPassword password for the private key
+         * @return this builder
+         */
+        public Builder ssl(String certificatePath, String privateKeyPath, String keyPassword) {
+            this.sslEnabled = true;
+            this.certificatePath = certificatePath;
+            this.privateKeyPath = privateKeyPath;
+            this.keyPassword = keyPassword;
+            return this;
+        }
+
+        /**
+         * Enables SSL with a self-signed certificate (for development/testing only).
+         * <p>
+         * <strong>Warning:</strong> Self-signed certificates should never be used in production
+         * as they provide no verification of identity and will cause browser warnings.
+         * <p>
+         * If this fails due to security provider issues, consider generating a certificate manually:
+         * <pre>
+         * openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes \
+         *   -subj "/CN=localhost"
+         * </pre>
+         * Then use {@link #ssl(String, String)} instead.
+         *
+         * @return this builder
+         */
+        public Builder sslSelfSigned() {
+            this.sslEnabled = true;
+            this.useSelfSignedCert = true;
+            return this;
+        }
+
+        public WebServer build() {
+            return new WebServer(port, wwwroot, services, sslEnabled,
+                    certificatePath, privateKeyPath, keyPassword, useSelfSignedCert, sslHostname);
+        }
     }
 
-    /** Defaults: port 8080, wwwroot "wwwroot", empty services. */
+    /** Defaults: port 8080, wwwroot "wwwroot", empty services, no SSL. */
     public static void run(java.util.function.Consumer<WebServer> app) throws InterruptedException {
         WebServer s = new Builder().build();
         app.accept(s);
@@ -70,6 +151,33 @@ public class WebServer {
     private final ServiceCollection services;
     private final ControllerScanner scanner;
     private final HttpRequestHandler requestHandler;
+    private final SslContext sslContext;
+    private final String sslHostname;
+
+    /**
+     * Constructs a new {@code WebServer} with SSL support.
+     *
+     * @param port               TCP port for the server to listen on
+     * @param wwwroot           root directory for static file serving
+     * @param services          dependency injection service container
+     * @param sslEnabled        whether SSL is enabled
+     * @param certificatePath   path to certificate file (if using custom cert)
+     * @param privateKeyPath    path to private key file (if using custom cert)
+     * @param keyPassword       password for private key (optional)
+     * @param useSelfSignedCert whether to use a self-signed certificate
+     */
+    public WebServer(int port, String wwwroot, ServiceCollection services,
+                     boolean sslEnabled, String certificatePath, String privateKeyPath,
+                     String keyPassword, boolean useSelfSignedCert, String sslHostname) {
+        this.port = port;
+        this.staticFiles = new StaticFileService(wwwroot);
+        this.sessions = new SessionManager(TimeUnit.HOURS.toMillis(24));
+        this.services = services;
+        this.scanner = new ControllerScanner(services);
+        this.requestHandler = new HttpRequestHandler(router, interceptors, errors, staticFiles, sessions);
+        this.sslHostname = sslHostname;
+        this.sslContext = createSslContext(sslEnabled, certificatePath, privateKeyPath, keyPassword, useSelfSignedCert, sslHostname);
+    }
 
     /**
      * Constructs a new {@code WebServer}.
@@ -79,12 +187,7 @@ public class WebServer {
      * @param services dependency injection service container
      */
     public WebServer(int port, String wwwroot, ServiceCollection services) {
-        this.port = port;
-        this.staticFiles = new StaticFileService(wwwroot);
-        this.sessions = new SessionManager(TimeUnit.HOURS.toMillis(24));
-        this.services = services;
-        this.scanner = new ControllerScanner(services);
-        this.requestHandler = new HttpRequestHandler(router, interceptors, errors, staticFiles, sessions);
+        this(port, wwwroot, services, false, null, null, null, false, null);
     }
 
     /**
@@ -95,6 +198,55 @@ public class WebServer {
      */
     public WebServer(int port, String wwwroot) {
         this(port, wwwroot, new ServiceCollection());
+    }
+
+    private SslContext createSslContext(boolean sslEnabled, String certificatePath,
+                                        String privateKeyPath, String keyPassword,
+                                        boolean useSelfSignedCert, String sslHostname) {
+        if (!sslEnabled) {
+            return null;
+        }
+
+        try {
+            if (useSelfSignedCert) {
+                //System.out.println("WARNING: Using self-signed certificate. This should only be used for development/testing!");
+                //SelfSignedCertificate ssc = new SelfSignedCertificate();
+                //return SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+                throw new IllegalArgumentException("Self-signed certificates must be generated outside of this library");
+            } else {
+                File certFile = new File(certificatePath);
+                File keyFile = new File(privateKeyPath);
+
+                if (!certFile.exists()) {
+                    throw new IllegalArgumentException("Certificate file not found: " + certificatePath);
+                }
+                if (!keyFile.exists()) {
+                    throw new IllegalArgumentException("Private key file not found: " + privateKeyPath);
+                }
+
+                SslContextBuilder builder = null;
+
+                if (keyPassword == null || keyPassword.isEmpty()) {
+                    builder = SslContextBuilder.forServer(certFile, keyFile);
+                }
+                else {
+                    builder = SslContextBuilder.forServer(certFile, keyFile, keyPassword);
+                }
+
+                return builder.build();
+            }
+        } catch (SSLException e) {
+            throw new RuntimeException("Failed to create SSL context", e);
+        }
+    }
+
+    /**
+     * Returns whether SSL is enabled for this server.
+     *
+     * @return true if SSL is enabled, false otherwise
+     */
+    public boolean isSslEnabled() {
+        return sslContext != null;
     }
 
     /**
@@ -166,6 +318,12 @@ public class WebServer {
                         @Override
                         protected void initChannel(SocketChannel ch) {
                             ChannelPipeline p = ch.pipeline();
+
+                            // Add SSL handler first if SSL is enabled
+                            if (sslContext != null) {
+                                p.addLast(sslContext.newHandler(ch.alloc(), sslHostname, port));
+                            }
+
                             p.addLast(new HttpServerCodec());
                             p.addLast(new HttpObjectAggregator(32 * 1024 * 1024));
                             p.addLast(new HttpContentCompressor());
@@ -184,6 +342,9 @@ public class WebServer {
                         }
                     })
                     .childOption(ChannelOption.TCP_NODELAY, true);
+
+            //String protocol = sslContext != null ? "HTTPS" : "HTTP";
+            //System.out.println("Starting " + protocol + " server on port " + port);
 
             Channel ch = b.bind(port).sync().channel();
             ch.closeFuture().sync();
